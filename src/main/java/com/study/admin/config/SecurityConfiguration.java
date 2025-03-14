@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
@@ -126,9 +127,12 @@ public class SecurityConfiguration {
     HttpServletResponse response,
     Authentication authentication
   ) throws IOException, ServletException {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException(
-      "Unimplemented method 'onLogoutSuccess'"
-    );
+    PrintWriter writer = response.getWriter();
+    String authorization = request.getHeader("Authorization");
+    if (jwtUtil.invalidateJwt(authorization)) {
+      writer.write(RestBean.success("退出成功").asJsonString());
+    } else {
+      writer.write(RestBean.failure(401, "退出失败").asJsonString());
+    }
   }
 }
