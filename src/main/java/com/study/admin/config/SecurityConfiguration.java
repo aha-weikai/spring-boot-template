@@ -1,8 +1,10 @@
 package com.study.admin.config;
 
 import com.study.admin.entity.RestBean;
+import com.study.admin.entity.dto.Account;
 import com.study.admin.entity.vo.AuthorizeVO;
 import com.study.admin.filter.JwtAuthorizeFilter;
+import com.study.admin.service.AccountService;
 import com.study.admin.utils.JwtUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.ServletException;
@@ -10,6 +12,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
@@ -19,9 +23,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -30,6 +33,11 @@ public class SecurityConfiguration {
 
   @Resource
   JwtAuthorizeFilter jwtAuthorizeFilter;
+
+  @Bean
+  BCryptPasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -71,6 +79,9 @@ public class SecurityConfiguration {
   @Resource
   JwtUtils jwtUtil;
 
+  @Resource
+  AccountService accountService;
+
   public void onAuthenticationSuccess(
     HttpServletRequest request,
     HttpServletResponse response,
@@ -78,11 +89,20 @@ public class SecurityConfiguration {
   ) throws IOException, ServletException {
     response.setContentType("application/json");
     User user = (User) authentication.getPrincipal();
-    String token = jwtUtil.createJwt(user, 1, "小明");
+    Account account = accountService.findAccountByNameOrEmail(
+      user.getUsername()
+    );
+    String token = jwtUtil.createJwt(
+      user,
+      account.getId(),
+      account.getUsername()
+    );
     AuthorizeVO vo = new AuthorizeVO();
+    // AuthorizeVO vo = account.asViewObject(AuthorizeVO.class);
     vo.setToken(token);
     vo.setExpire(jwtUtil.expireTime());
     vo.setUsername(user.getUsername());
+
 
     response.getWriter().write(RestBean.success(vo).asJsonString());
   }

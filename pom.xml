@@ -15,6 +15,7 @@
     <spring-boot.version>3.0.2</spring-boot.version>
     <fastjson2.version>2.0.56</fastjson2.version>
     <java-jwt.version>4.5.0</java-jwt.version>
+    <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
   </properties>
   <dependencies>
     <dependency>
@@ -60,6 +61,11 @@
       <groupId>com.auth0</groupId>
       <artifactId>java-jwt</artifactId>
       <version>${java-jwt.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.baomidou</groupId>
+      <artifactId>mybatis-plus-boot-starter</artifactId>
+      <version>${mybatis-plus.version}</version>
     </dependency>
   </dependencies>
   <dependencyManagement>
